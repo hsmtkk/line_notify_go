@@ -20,16 +20,17 @@ func main() {
 		Use: "linenotify",
 	}
 	notifyImageCommand := &cobra.Command{
-		Use:  "notifyimage path",
-		Args: cobra.ExactArgs(1),
+		Use:  "notifyimage message path",
+		Args: cobra.ExactArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
-			path := args[0]
+			message := args[0]
+			path := args[1]
 			fileName := filepath.Base(path)
 			reader, err := os.Open(path)
 			if err != nil {
 				log.Fatal(err)
 			}
-			if err := notifier.NotifyImage(fileName, reader); err != nil {
+			if err := notifier.NotifyImage(message, fileName, reader); err != nil {
 				log.Fatal(err)
 			}
 		},
