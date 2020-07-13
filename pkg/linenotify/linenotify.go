@@ -24,6 +24,10 @@ func New(token string) Notifier {
 	return &notifierImpl{client: http.DefaultClient, baseURL: urlLINEAPI, token: token}
 }
 
+func NewForTest(client *http.Client, url string) Notifier {
+	return &notifierImpl{client: client, baseURL: url, token: "test"}
+}
+
 func (notifier *notifierImpl) NotifyMessage(message string) error {
 	params := url.Values{}
 	params.Add("message", message)
