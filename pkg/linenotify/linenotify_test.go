@@ -36,7 +36,7 @@ func TestNotifyImage(t *testing.T) {
 	defer ts.Close()
 
 	fileName := "python.png"
-	reader, err := os.Open("../../test/python.png")
+	reader, err := os.Open("../../test/test.png")
 	test.AssertNil(t, err)
 	notifier := linenotify.NewForTest(ts.Client(), ts.URL)
 	err = notifier.NotifyImage("test", fileName, reader)
