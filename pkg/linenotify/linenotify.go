@@ -1,13 +1,17 @@
 package linenotify
 
 import (
+	"bytes"
 	"fmt"
+	"io"
+	"mime/multipart"
 	"net/http"
 	"net/url"
 	"strings"
 )
 
 type Notifier interface {
+	NotifyImage(message, fileName string, reader io.Reader) error
 	NotifyMessage(message string) error
 	Status() error
 }
@@ -37,6 +41,46 @@ func (notifier *notifierImpl) NotifyMessage(message string) error {
 	}
 	req.Header.Add("Authorization", "Bearer "+notifier.token)
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	resp, err := notifier.client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode == http.StatusOK {
+		return nil
+	}
+	return fmt.Errorf("got HTTP status code %d", resp.StatusCode)
+}
+
+func (notifier *notifierImpl) NotifyImage(message, fileName string, reader io.Reader) error {
+	var body bytes.Buffer
+	multipartWriter := multipart.NewWriter(&body)
+
+	// message
+	msgWriter, err := multipartWriter.CreateFormField("message")
+	msgWriter.Write([]byte(message))
+
+	// image
+	fw, err := multipartWriter.CreateFormFile("imageFile", fileName)
+	if err != nil {
+		return err
+	}
+	_, err = io.Copy(fw, reader)
+	if err != nil {
+		return err
+	}
+
+	contentType := multipartWriter.FormDataContentType()
+	if err := multipartWriter.Close(); err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, notifier.baseURL+"/notify", bytes.NewReader(body.Bytes()))
+	if err != nil {
+		return err
+	}
+	req.Header.Add("Authorization", "Bearer "+notifier.token)
+	req.Header.Add("Content-Type", contentType)
 	resp, err := notifier.client.Do(req)
 	if err != nil {
 		return err

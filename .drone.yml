@@ -22,6 +22,6 @@ steps:
       LINE_NOTIFY_TOKEN:
         from_secret: line_notify_token
     commands:
-      - cd cmd/linenotify
-      - ./linenotify status
-      - ./linenotify notifymessage "drone test"
+      - ./cmd/linenotify/linenotify status
+      - ./cmd/linenotify/linenotify notifymessage "drone test"
+      - ./cmd/linenotify/linenotify notifyimage "drone test" test/test.png
